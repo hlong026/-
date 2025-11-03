@@ -54,33 +54,48 @@ const parseAnalysis = (content: string) => {
 
 const FormattedContent: React.FC<{ content: string }> = ({ content }) => {
     if (!content) return null;
+
+    const elements = content.split('\n').map((line, index) => {
+        if (line.trim() === '') return null;
+
+        const subheadingMatch = line.match(/^\s*\*\*(.*?)\*\*：\s*(.*)/);
+        if (subheadingMatch) {
+            const title = subheadingMatch[1];
+            const text = subheadingMatch[2];
+            return (
+                <div key={index}>
+                    <p className="font-semibold text-slate-100">{title}</p>
+                    <p className="text-slate-300">{text}</p>
+                </div>
+            );
+        }
+
+        if (line.startsWith('* ') || line.startsWith('- ')) {
+            return (
+                <div key={index} className="flex items-start">
+                    <CheckCircleIcon className="w-5 h-5 mr-3 mt-1 text-cyan-500 flex-shrink-0" />
+                    <span>{line.substring(2)}</span>
+                </div>
+            );
+        }
+
+        if (line.includes('**')) {
+            const parts = line.split('**');
+            return (
+                <p key={index}>
+                    {parts.map((part, i) =>
+                        i % 2 === 1 ? <strong key={i} className="font-semibold text-slate-100">{part}</strong> : part
+                    )}
+                </p>
+            );
+        }
+
+        return <p key={index}>{line}</p>;
+    }).filter(Boolean);
+
     return (
-        <div className="space-y-3 text-slate-300 leading-relaxed">
-            {content.split('\n').map((line, index) => {
-                if (line.trim() === '') return null;
-
-                if (line.startsWith('* ') || line.startsWith('- ')) {
-                    return (
-                        <div key={index} className="flex items-start my-3">
-                            <CheckCircleIcon className="w-5 h-5 mr-3 mt-1 text-cyan-500 flex-shrink-0" />
-                            <span>{line.substring(2)}</span>
-                        </div>
-                    );
-                }
-
-                if (line.includes('**')) {
-                    const parts = line.split('**');
-                    return (
-                        <p key={index}>
-                            {parts.map((part, i) =>
-                                i % 2 === 1 ? <strong key={i} className="font-semibold text-slate-100">{part}</strong> : part
-                            )}
-                        </p>
-                    );
-                }
-
-                return <p key={index}>{line}</p>;
-            })}
+        <div className="space-y-4 text-slate-300 leading-relaxed">
+            {elements}
         </div>
     );
 };
